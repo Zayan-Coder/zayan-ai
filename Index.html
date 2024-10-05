@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI21 Chat API</title>
+</head>
+<body>
+    <h1>AI21 Chat API Example</h1>
+    <button id="fetch-data">Fetch Data</button>
+    <pre id="output"></pre>
+
+    <script>
+        document.getElementById('fetch-data').addEventListener('click', function() {
+            fetch("https://api.ai21.com/studio/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": "KdvpN5cmnFn8Zr3VAMrYdEdGXMJERwHl",  // Replace YOUR_API_KEY with your actual API key
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "model": "jamba-1.5-large",
+                    "messages": [],
+                    "documents": [],
+                    "tools": [],
+                    "n": 1,
+                    "max_tokens": 1024,
+                    "temperature": 0.4,
+                    "top_p": 1,
+                    "stop": [],
+                    "response_format": { "type": "text" },
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('output').textContent = error;
+            });
+        });
+    </script>
+</body>
+</html>
