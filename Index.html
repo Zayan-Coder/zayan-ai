@@ -3,15 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI21 Chat API</title>
+    <title>AI21 Chat API Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f7;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #4A90E2;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 1em;
+            resize: none;
+            background-color: #fafafa;
+        }
+
+        button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #357ABD;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #2d2d2d;
+        }
+
+        #output {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>AI21 Chat API Example</h1>
-    <button id="fetch-data">Fetch Data</button>
-    <pre id="output"></pre>
+    <div class="container">
+        <h1>AI21 Chat API Example</h1>
+        
+        <!-- Input Box -->
+        <label for="inputText">Enter your message:</label>
+        <textarea id="inputText" rows="4" placeholder="Type your message here..."></textarea>
+
+        <!-- Button to Fetch Data -->
+        <button id="fetch-data">Fetch Data</button>
+
+        <!-- Output Box -->
+        <label for="output">Output:</label>
+        <pre id="output">Response will be displayed here...</pre>
+    </div>
 
     <script>
         document.getElementById('fetch-data').addEventListener('click', function() {
+            const inputText = document.getElementById('inputText').value;
+
+            // Fetch API call
             fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -20,7 +110,7 @@
                 },
                 body: JSON.stringify({
                     "model": "jamba-1.5-large",
-                    "messages": [],
+                    "messages": [{"role": "user", "content": inputText}],  // Sending user input
                     "documents": [],
                     "tools": [],
                     "n": 1,
@@ -33,11 +123,11 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2); // Display output
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById('output').textContent = error;
+                document.getElementById('output').textContent = error; // Show error in output box
             });
         });
     </script>
