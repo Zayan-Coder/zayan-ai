@@ -11,28 +11,67 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
         }
 
-        h1 {
-            color: #4A90E2;
-        }
-
-        .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             max-width: 600px;
             width: 100%;
-            margin: 20px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            height: 90vh;
+            overflow: hidden;
         }
 
-        label {
-            font-weight: bold;
+        h1 {
+            color: #4A90E2;
+            text-align: center;
+            padding: 20px 0;
+            margin: 0;
+            background-color: #4A90E2;
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-bubble {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #e1f5fe;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #ddd;
         }
 
         textarea {
@@ -40,13 +79,13 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            margin-bottom: 20px;
             font-size: 1em;
             resize: none;
             background-color: #fafafa;
         }
 
         button {
+            margin-left: 10px;
             background-color: #4A90E2;
             color: white;
             padding: 10px 20px;
@@ -61,47 +100,118 @@
             background-color: #357ABD;
         }
 
-        pre {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .code-block {
+            background-color: #282c34;
+            color: #61dafb;
+            font-family: "Courier New", Courier, monospace;
             padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: #2d2d2d;
+            border-radius: 5px;
+            margin-top: 10px;
+            position: relative;
         }
 
-        #output {
-            font-family: "Courier New", Courier, monospace;
-            font-size: 0.9em;
-            background-color: #f4f4f4;
-            padding: 20px;
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .chat-window {
+            scroll-behavior: smooth;
+        }
+
+        /* Typing animation */
+        .typewriter span {
+            border-right: 2px solid black;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>AI21 Chat API Example</h1>
-        
-        <!-- Input Box -->
-        <label for="inputText">Enter your message:</label>
-        <textarea id="inputText" rows="4" placeholder="Type your message here..."></textarea>
+    <div class="chat-container">
+        <h1>AI21 Chat API</h1>
 
-        <!-- Button to Fetch Data -->
-        <button id="fetch-data">Fetch Data</button>
+        <!-- Chat window where messages appear -->
+        <div class="chat-window" id="chat-window">
+            <!-- Messages will be dynamically added here -->
+        </div>
 
-        <!-- Output Box -->
-        <label for="output">Output:</label>
-        <pre id="output">Response will be displayed here...</pre>
+        <!-- Input area for user message -->
+        <div class="chat-input">
+            <textarea id="inputText" rows="1" placeholder="Type your message..."></textarea>
+            <button id="send-btn">Send</button>
+        </div>
     </div>
 
     <script>
-        document.getElementById('fetch-data').addEventListener('click', function() {
-            const inputText = document.getElementById('inputText').value;
+        // Typewriter effect function
+        function typewriterEffect(element, text, callback) {
+            let index = 0;
+            function type() {
+                if (index < text.length) {
+                    element.innerHTML += text.charAt(index);
+                    index++;
+                    setTimeout(type, 50);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
 
-            // Fetch API call
+        // Function to append messages to the chat window
+        function addMessage(content, type, isCode = false) {
+            const chatWindow = document.getElementById('chat-window');
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('chat-bubble');
+            messageBubble.classList.add(type === 'user' ? 'user-message' : 'bot-message');
+            
+            if (isCode) {
+                // For code blocks, format it properly with a "Copy" button
+                const codeBlock = document.createElement('div');
+                codeBlock.classList.add('code-block');
+                codeBlock.textContent = content;
+
+                const copyButton = document.createElement('button');
+                copyButton.classList.add('copy-button');
+                copyButton.textContent = 'Copy Code';
+                copyButton.onclick = function () {
+                    navigator.clipboard.writeText(content);
+                    alert('Code copied!');
+                };
+
+                codeBlock.appendChild(copyButton);
+                messageBubble.appendChild(codeBlock);
+            } else {
+                const textElement = document.createElement('span');
+                messageBubble.appendChild(textElement);
+                typewriterEffect(textElement, content);
+            }
+            chatWindow.appendChild(messageBubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
+        }
+
+        document.getElementById('send-btn').addEventListener('click', function() {
+            const inputText = document.getElementById('inputText').value.trim();
+
+            // If input is empty, do nothing
+            if (inputText === "") return;
+
+            // Append user's message to chat window
+            addMessage(inputText, 'user');
+
+            // Clear input box
+            document.getElementById('inputText').value = "";
+
+            // Fetch API call to AI21
             fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -110,7 +220,7 @@
                 },
                 body: JSON.stringify({
                     "model": "jamba-1.5-large",
-                    "messages": [{"role": "user", "content": inputText}],  // Sending user input
+                    "messages": [{"role": "user", "content": inputText}],  // Send user input
                     "documents": [],
                     "tools": [],
                     "n": 1,
@@ -123,11 +233,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('output').textContent = JSON.stringify(data, null, 2); // Display output
+                const botResponse = data.choices[0].message.content;
+
+                // Check if the response contains code
+                if (botResponse.includes("```")) {
+                    const codeContent = botResponse.match(/```(?:\w*\n)?([\s\S]*?)```/)[1];
+                    addMessage(codeContent, 'bot', true); // Display code separately
+                } else {
+                    addMessage(botResponse, 'bot'); // Display text response
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById('output').textContent = error; // Show error in output box
+                addMessage("Error Genrating response. Try again.", 'bot');
             });
         });
     </script>
