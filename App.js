@@ -31,7 +31,7 @@ function respondToQuery(query) {
     return responses[normalizedQuery] || "I'm sorry, I don't have an answer for that.";
 }
 
-// Function to use AI21 Labs API
+// Function to use AI21 Labs API (optional for future use)
 async function processWithAI21(text) {
     const apiKey = process.env.AI21_API_KEY; // Store your API key in an environment variable
     const endpoint = "https://api.ai21.com/studio/v1/j1-large/complete";
@@ -54,7 +54,7 @@ async function processWithAI21(text) {
     }
 }
 
-// Main function to read the document and send to AI21
+// Main function to read the document and respond to queries
 async function main() {
     const filePath = "knowledge.txt"; // Use the name of your text file
     const extractedText = await readTextFile(filePath);
