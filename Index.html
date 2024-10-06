@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI21 Chat API Example</title>
+    <title>AI21 Chat Example with Knowledge Base</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -107,7 +107,7 @@
 </head>
 <body>
     <div class="chat-container">
-        <h1>AI21 Chat API</h1>
+        <h1>AI21 Chat with Knowledge</h1>
 
         <!-- Chat window where messages appear -->
         <div class="chat-window" id="chat-window">
@@ -122,52 +122,35 @@
     </div>
 
     <script>
-        // Typewriter effect function
-        function typewriterEffect(element, text, callback) {
-            let index = 0;
-            function type() {
-                if (index < text.length) {
-                    element.innerHTML += text.charAt(index);
-                    index++;
-                    setTimeout(type, 50);
-                } else if (callback) {
-                    callback();
-                }
-            }
-            type();
-        }
-
         // Function to append messages to the chat window
-        function addMessage(content, type, isCode = false) {
+        function addMessage(content, type) {
             const chatWindow = document.getElementById('chat-window');
             const messageBubble = document.createElement('div');
             messageBubble.classList.add('chat-bubble');
             messageBubble.classList.add(type === 'user' ? 'user-message' : 'bot-message');
             
             const textElement = document.createElement('span');
+            textElement.textContent = content;
             messageBubble.appendChild(textElement);
-            typewriterEffect(textElement, content);
-
+            
             chatWindow.appendChild(messageBubble);
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
         }
 
         // Knowledge base for specific questions
         function respondToQuery(query) {
-            const responses = {
+            const knowledgeBase = {
                 "what is your name?": "Zayan AI",
                 "who invented you?": "Zayan Mohammed",
                 "what is your purpose?": "To assist and provide information.",
                 "who is your creator?": "Zayan Mohammed",
-                "what can you do?": "I can answer questions and assist with various tasks.",
+                "what can you do?": "I can answer questions and assist with various tasks."
             };
 
-            // Normalize the query to lowercase for comparison
-            const normalizedQuery = query.toLowerCase().trim();
-
-            return responses[normalizedQuery] || null; // Return null if no predefined response exists
+            return knowledgeBase[query.toLowerCase()] || null; // Return the response or null if not found
         }
 
+        // Event listener for the send button
         document.getElementById('send-btn').addEventListener('click', function() {
             const inputText = document.getElementById('inputText').value.trim();
 
@@ -191,28 +174,20 @@
             fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": "Bearer KdvpN5cmnFn8Zr3VAMrYdEdGXMJERwHl",  // Replace YOUR_API_KEY with your actual API key
+                    "Authorization": "Bearer KdvpN5cmnFn8Zr3VAMrYdEdGXMJERwHl",  // Replace with your actual API key
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    "model": "jamba-1.5-large",
+                    "model": "j2-jumbo-instruct",
                     "messages": [{"role": "user", "content": inputText}],  // Send user input
-                    "documents": [],
-                    "tools": [],
-                    "n": 1,
-                    "max_tokens": 1024,
-                    "temperature": 0.4,
-                    "top_p": 1,
-                    "stop": [],
-                    "response_format": { "type": "text" },
+                    "maxTokens": 100,
+                    "temperature": 0.7
                 }),
             })
             .then(response => response.json())
             .then(data => {
-                const botResponse = data.choices[0].message.content;
-
-                // Display the response from the AI21 API
-                addMessage(botResponse, 'bot');
+                const botResponse = data.completions[0].data.text;
+                addMessage(botResponse, 'bot'); // Display the response from AI21
             })
             .catch(error => {
                 console.error('Error:', error);
