@@ -125,14 +125,6 @@
         .chat-window {
             scroll-behavior: smooth;
         }
-
-        /* Typing animation */
-        .typewriter span {
-            border-right: 2px solid black;
-            display: inline-block;
-            white-space: nowrap;
-            overflow: hidden;
-        }
     </style>
 </head>
 <body>
@@ -199,6 +191,22 @@
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
         }
 
+        // Knowledge base for specific questions
+        function respondToQuery(query) {
+            const responses = {
+                "what is your name?": "Zayan AI",
+                "who invented you?": "Zayan Mohammed",
+                "what is your purpose?": "To assist and provide information.",
+                "who is your creator?": "Zayan Mohammed",
+                "what can you do?": "I can answer questions and assist with various tasks.",
+            };
+
+            // Normalize the query to lowercase for comparison
+            const normalizedQuery = query.toLowerCase().trim();
+
+            return responses[normalizedQuery] || null; // Return null if no predefined response exists
+        }
+
         document.getElementById('send-btn').addEventListener('click', function() {
             const inputText = document.getElementById('inputText').value.trim();
 
@@ -211,7 +219,14 @@
             // Clear input box
             document.getElementById('inputText').value = "";
 
-            // Fetch API call to AI21
+            // Check for predefined responses
+            const predefinedResponse = respondToQuery(inputText);
+            if (predefinedResponse) {
+                addMessage(predefinedResponse, 'bot');
+                return; // Stop further processing if a predefined response was found
+            }
+
+            // Fetch API call to AI21 if no predefined response
             fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -245,7 +260,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                addMessage("Error Genrating response. Try again.", 'bot');
+                addMessage("Error Generating response. Try again.", 'bot');
             });
         });
     </script>
