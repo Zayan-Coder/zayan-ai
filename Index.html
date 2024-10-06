@@ -100,28 +100,6 @@
             background-color: #357ABD;
         }
 
-        .code-block {
-            background-color: #282c34;
-            color: #61dafb;
-            font-family: "Courier New", Courier, monospace;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
         .chat-window {
             scroll-behavior: smooth;
         }
@@ -166,27 +144,10 @@
             messageBubble.classList.add('chat-bubble');
             messageBubble.classList.add(type === 'user' ? 'user-message' : 'bot-message');
             
-            if (isCode) {
-                // For code blocks, format it properly with a "Copy" button
-                const codeBlock = document.createElement('div');
-                codeBlock.classList.add('code-block');
-                codeBlock.textContent = content;
+            const textElement = document.createElement('span');
+            messageBubble.appendChild(textElement);
+            typewriterEffect(textElement, content);
 
-                const copyButton = document.createElement('button');
-                copyButton.classList.add('copy-button');
-                copyButton.textContent = 'Copy Code';
-                copyButton.onclick = function () {
-                    navigator.clipboard.writeText(content);
-                    alert('Code copied!');
-                };
-
-                codeBlock.appendChild(copyButton);
-                messageBubble.appendChild(codeBlock);
-            } else {
-                const textElement = document.createElement('span');
-                messageBubble.appendChild(textElement);
-                typewriterEffect(textElement, content);
-            }
             chatWindow.appendChild(messageBubble);
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
         }
@@ -226,7 +187,7 @@
                 return; // Stop further processing if a predefined response was found
             }
 
-            // Fetch API call to AI21 if no predefined response
+            // If no predefined response, call AI21 API
             fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -250,17 +211,12 @@
             .then(data => {
                 const botResponse = data.choices[0].message.content;
 
-                // Check if the response contains code
-                if (botResponse.includes("```")) {
-                    const codeContent = botResponse.match(/```(?:\w*\n)?([\s\S]*?)```/)[1];
-                    addMessage(codeContent, 'bot', true); // Display code separately
-                } else {
-                    addMessage(botResponse, 'bot'); // Display text response
-                }
+                // Display the response from the AI21 API
+                addMessage(botResponse, 'bot');
             })
             .catch(error => {
                 console.error('Error:', error);
-                addMessage("Error Generating response. Try again.", 'bot');
+                addMessage("Error generating response. Try again.", 'bot');
             });
         });
     </script>
