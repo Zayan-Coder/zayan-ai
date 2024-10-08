@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dual API Chat Example</title>
+    <title>AIML Chat Example</title>
     <style>
+        /* Same CSS styles as before */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f4f7;
@@ -107,7 +108,7 @@
 </head>
 <body>
     <div class="chat-container">
-        <h1>Dual API Chat</h1>
+        <h1>AIML Chat</h1>
 
         <div class="chat-window" id="chat-window"></div>
 
@@ -129,27 +130,6 @@
 
             chatWindow.appendChild(messageBubble);
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
-        }
-
-        function fetchFromAI21(inputText) {
-            return fetch("https://api.ai21.com/studio/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer cypjvHWbiO2MT5Utj8U8JkhXd99QspGF", // Replace with your actual AI21 API key
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    "model": "j2-jumbo-instruct",
-                    "messages": [{"role": "user", "content": inputText}],
-                    "maxTokens": 100,
-                    "temperature": 0.7
-                }),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('AI21 API error');
-                return response.json();
-            })
-            .then(data => data.completions[0].data.text);
         }
 
         function fetchFromAIML(inputText) {
@@ -177,43 +157,15 @@
             addMessage(inputText, 'user');
             document.getElementById('inputText').value = "";
 
-            // Pick a random API
-            const randomAPI = Math.random() < 0.5 ? 'ai21' : 'aiml';
-
-            // Try fetching from the selected API
-            let fetchPromise;
-            if (randomAPI === 'ai21') {
-                fetchPromise = fetchFromAI21(inputText);
-            } else {
-                fetchPromise = fetchFromAIML(inputText);
-            }
-
-            fetchPromise
+            // Fetch response from AIML API
+            fetchFromAIML(inputText)
                 .then(response => {
+                    console.log('AIML Response:', response); // Debugging output
                     addMessage(response, 'bot');
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // If the first API fails, try the other one
-                    if (randomAPI === 'ai21') {
-                        fetchFromAIML(inputText)
-                            .then(response => {
-                                addMessage(response, 'bot');
-                            })
-                            .catch(err => {
-                                console.error('Error from AIML:', err);
-                                addMessage("Error generating response from both APIs. Try again.", 'bot');
-                            });
-                    } else {
-                        fetchFromAI21(inputText)
-                            .then(response => {
-                                addMessage(response, 'bot');
-                            })
-                            .catch(err => {
-                                console.error('Error from AI21:', err);
-                                addMessage("Error generating response from both APIs. Try again.", 'bot');
-                            });
-                    }
+                .catch(err => {
+                    console.error('Error from AIML:', err);
+                    addMessage("Error generating response. Try again.", 'bot');
                 });
         });
     </script>
