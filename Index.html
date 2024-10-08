@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI21 Chat Example with Knowledge Base</title>
+    <title>Dual API Chat Example</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -107,14 +107,10 @@
 </head>
 <body>
     <div class="chat-container">
-        <h1>AI21 Chat with Knowledge</h1>
+        <h1>Dual API Chat</h1>
 
-        <!-- Chat window where messages appear -->
-        <div class="chat-window" id="chat-window">
-            <!-- Messages will be dynamically added here -->
-        </div>
+        <div class="chat-window" id="chat-window"></div>
 
-        <!-- Input area for user message -->
         <div class="chat-input">
             <textarea id="inputText" rows="1" placeholder="Type your message..."></textarea>
             <button id="send-btn">Send</button>
@@ -122,77 +118,103 @@
     </div>
 
     <script>
-        // Function to append messages to the chat window
         function addMessage(content, type) {
             const chatWindow = document.getElementById('chat-window');
             const messageBubble = document.createElement('div');
-            messageBubble.classList.add('chat-bubble');
-            messageBubble.classList.add(type === 'user' ? 'user-message' : 'bot-message');
-            
+            messageBubble.classList.add('chat-bubble', type === 'user' ? 'user-message' : 'bot-message');
+
             const textElement = document.createElement('span');
             textElement.textContent = content;
             messageBubble.appendChild(textElement);
-            
+
             chatWindow.appendChild(messageBubble);
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
         }
 
-        // Knowledge base for specific questions
-        function respondToQuery(query) {
-            const knowledgeBase = {
-                "what is your name?": "Zayan AI",
-                "who invented you?": "Zayan Mohammed",
-                "what is your purpose?": "To assist and provide information.",
-                "who is your creator?": "Zayan Mohammed",
-                "what can you do?": "I can answer questions and assist with various tasks."
-            };
-
-            return knowledgeBase[query.toLowerCase()] || null; // Return the response or null if not found
-        }
-
-        // Event listener for the send button
-        document.getElementById('send-btn').addEventListener('click', function() {
-            const inputText = document.getElementById('inputText').value.trim();
-
-            // If input is empty, do nothing
-            if (inputText === "") return;
-
-            // Append user's message to chat window
-            addMessage(inputText, 'user');
-
-            // Clear input box
-            document.getElementById('inputText').value = "";
-
-            // Check for predefined responses
-            const predefinedResponse = respondToQuery(inputText);
-            if (predefinedResponse) {
-                addMessage(predefinedResponse, 'bot');
-                return; // Stop further processing if a predefined response was found
-            }
-
-            // If no predefined response, call AI21 API
-            fetch("https://api.ai21.com/studio/v1/chat/completions", {
+        function fetchFromAI21(inputText) {
+            return fetch("https://api.ai21.com/studio/v1/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": "Bearer KdvpN5cmnFn8Zr3VAMrYdEdGXMJERwHl",  // Replace with your actual API key
+                    "Authorization": "Bearer cypjvHWbiO2MT5Utj8U8JkhXd99QspGF", // Replace with your actual AI21 API key
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     "model": "j2-jumbo-instruct",
-                    "messages": [{"role": "user", "content": inputText}],  // Send user input
+                    "messages": [{"role": "user", "content": inputText}],
                     "maxTokens": 100,
                     "temperature": 0.7
                 }),
             })
-            .then(response => response.json())
-            .then(data => {
-                const botResponse = data.completions[0].data.text;
-                addMessage(botResponse, 'bot'); // Display the response from AI21
+            .then(response => {
+                if (!response.ok) throw new Error('AI21 API error');
+                return response.json();
             })
-            .catch(error => {
-                console.error('Error:', error);
-                addMessage("Error generating response. Try again.", 'bot');
-            });
+            .then(data => data.completions[0].data.text);
+        }
+
+        function fetchFromAIML(inputText) {
+            return fetch("https://api.aimlapi.com/v1/chat", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer 9081eb281089470499b845ec6ae71f36", // Replace with your actual AIML API key
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "input": inputText
+                }),
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('AIML API error');
+                return response.json();
+            })
+            .then(data => data.response);
+        }
+
+        document.getElementById('send-btn').addEventListener('click', function() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (inputText === "") return;
+
+            addMessage(inputText, 'user');
+            document.getElementById('inputText').value = "";
+
+            // Pick a random API
+            const randomAPI = Math.random() < 0.5 ? 'ai21' : 'aiml';
+
+            // Try fetching from the selected API
+            let fetchPromise;
+            if (randomAPI === 'ai21') {
+                fetchPromise = fetchFromAI21(inputText);
+            } else {
+                fetchPromise = fetchFromAIML(inputText);
+            }
+
+            fetchPromise
+                .then(response => {
+                    addMessage(response, 'bot');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // If the first API fails, try the other one
+                    if (randomAPI === 'ai21') {
+                        fetchFromAIML(inputText)
+                            .then(response => {
+                                addMessage(response, 'bot');
+                            })
+                            .catch(err => {
+                                console.error('Error from AIML:', err);
+                                addMessage("Error generating response from both APIs. Try again.", 'bot');
+                            });
+                    } else {
+                        fetchFromAI21(inputText)
+                            .then(response => {
+                                addMessage(response, 'bot');
+                            })
+                            .catch(err => {
+                                console.error('Error from AI21:', err);
+                                addMessage("Error generating response from both APIs. Try again.", 'bot');
+                            });
+                    }
+                });
         });
     </script>
 </body>
