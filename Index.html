@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIML Chat Example</title>
+    <title>Zayan AI Chat Example</title>
     <style>
         /* Same CSS styles as before */
         body {
@@ -108,7 +108,7 @@
 </head>
 <body>
     <div class="chat-container">
-        <h1>AIML Chat</h1>
+        <h1>Zayan AI Chat</h1>
 
         <div class="chat-window" id="chat-window"></div>
 
@@ -132,11 +132,11 @@
             chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
         }
 
-        function fetchFromAIML(inputText) {
-            return fetch("https://api.aimlapi.com/v1/chat", {
+        function fetchFromGroq(inputText) {
+            return fetch("https://api.groq.com/v1/chat", {
                 method: "POST",
                 headers: {
-                    "Authorization": "Bearer 9081eb281089470499b845ec6ae71f36", // Replace with your actual AIML API key
+                    "Authorization": "Bearer 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", // Replace with your actual Groq API key
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
@@ -144,7 +144,7 @@
                 }),
             })
             .then(response => {
-                if (!response.ok) throw new Error('AIML API error');
+                if (!response.ok) throw new Error('Groq API error');
                 return response.json();
             })
             .then(data => data.response);
@@ -157,14 +157,14 @@
             addMessage(inputText, 'user');
             document.getElementById('inputText').value = "";
 
-            // Fetch response from AIML API
-            fetchFromAIML(inputText)
+            // Fetch response from Groq API
+            fetchFromGroq(inputText)
                 .then(response => {
-                    console.log('AIML Response:', response); // Debugging output
+                    console.log('Groq Response:', response); // Debugging output
                     addMessage(response, 'bot');
                 })
                 .catch(err => {
-                    console.error('Error from AIML:', err);
+                    console.error('Error from Groq:', err);
                     addMessage("Error generating response. Try again.", 'bot');
                 });
         });
